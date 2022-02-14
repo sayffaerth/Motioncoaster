@@ -47,20 +47,12 @@ window.onload = function() {
     // grab an audio context
     audioContext = new AudioContext();
 
-    // Attempt to get audio input
     try {
         // monkeypatch getUserMedia
-        navigator.mediaDevices.getUserMedia({audio: {}}) .then((audio)=> {audio.srcObject = stream;}, (err)=> console.error(err));
-
-        if (typeof navigator.mediaDevices.getUserMedia === 'undefined') {
-            navigator.getUserMedia({
-                audio: true
-            }, streamHandler, errorHandler);
-        } else {
-            navigator.mediaDevices.getUserMedia({
-                audio: true
-            }).then(streamHandler).catch(errorHandler);
-        }
+        navigator.getUserMedia = 
+        	navigator.getUserMedia ||
+        	navigator.webkitGetUserMedia ||
+        	navigator.mozGetUserMedia;
 
         // ask for an audio input
         navigator.getUserMedia(
@@ -102,9 +94,9 @@ function onMicrophoneGranted(stream) {
 
 //meter.volume is the volume !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 function onLevelChange( time ) {
-    var alongspeed = "curve: #track2; dur: "+5000*meter.volume
-    document.getElementById("speed") = '<a-box alongpath="curve: #track2; dur: "'+5000*meter.volume+'" id="speed"></a-box>';
-    console.log(along);
+    //var alongspeed = "curve: #track2; dur: "+5000*meter.volume
+    //document.getElementById("speed") = '<a-box alongpath="curve: #track2; dur: "'+5000*meter.volume+'" id="speed"></a-box>';
+    console.log(meter.volume);
     // set up the next visual callback
     rafID = window.requestAnimationFrame( onLevelChange );
 }
