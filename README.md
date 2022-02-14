@@ -1,5 +1,3 @@
-npm install --force
+Motioncoaster to experience your motion sickness or causing it to friends while drawing (just kidding ;) )
 
-npm start
-
-go to localhost:8000
+Link: https://sayffaerth.github.io/Motioncoaster/
