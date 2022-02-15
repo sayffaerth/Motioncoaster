@@ -102,7 +102,7 @@ function onLevelChange( time ) {
         speed.setAttribute('alongpath', {curve: '#track2', dur: 50000, rotate: true, loop: true});
     }
     
-    console.log(meter.volume);
+    //console.log(meter.volume);
     // set up the next visual callback
     rafID = window.requestAnimationFrame( onLevelChange );
 }
