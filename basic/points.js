@@ -23,14 +23,15 @@ var groupObject3D_s = document.querySelector('#blacksphere');
     entityEl_2.setAttribute('position', {x: 2, y: 4+0.2, z: 1})
     //entityEl.setAttribute('position', {x: pointlist[i][0], y: pointlist[i][1], z: pointlist[i][2]})
     groupObject3D_1.appendChild(entityEl_1);
-    groupObject3D_2.appendChild(entityEl_2);
-
-    var endSphere = document.createElement('a-sphere');
-    endSphere.setAttribute('position', {x: 2, y: 4, z: 1});
-    endSphere.setAttribute('radius', 0.5)
-    endSphere.setAttribute('color', "black")
-    groupObject3D_s.appendChild(endSphere);
+    groupObject3D_2.appendChild(entityEl_2); 
 //}
+
+var endSphere = document.createElement('a-sphere');
+endSphere.setAttribute('position', {x: 2, y: 4, z: 1});
+endSphere.setAttribute('radius', 0.5)
+endSphere.setAttribute('color', "black")
+groupObject3D_s.appendChild(endSphere);
+
 /*
 var groupObject3D = document.querySelector('#track1');
 var entityEl = document.createElement('a-curve-point');
