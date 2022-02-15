@@ -32,6 +32,10 @@ endSphere.setAttribute('radius', 0.5)
 endSphere.setAttribute('color', "black")
 groupObject3D_s.appendChild(endSphere);
 
+//var speed = document.querySelector('#speed');
+//speed.setAttribute('alongpath', {curve: '#track2', dur: 500, rotate: true, loop: true});
+
+
 /*
 var groupObject3D = document.querySelector('#track1');
 var entityEl = document.createElement('a-curve-point');

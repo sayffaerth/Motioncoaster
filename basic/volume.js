@@ -94,8 +94,14 @@ function onMicrophoneGranted(stream) {
 
 //meter.volume is the volume !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 function onLevelChange( time ) {
-    //var alongspeed = "curve: #track2; dur: "+5000*meter.volume
-    //document.getElementById("speed") = '<a-box alongpath="curve: #track2; dur: "'+5000*meter.volume+'" id="speed"></a-box>';
+    if (meter.volume > 0.05){
+        var speed = document.querySelector('#speed');
+        speed.setAttribute('alongpath', {curve: '#track2', dur: 5000, rotate: true, loop: true});
+    } else {
+        var speed = document.querySelector('#speed');
+        speed.setAttribute('alongpath', {curve: '#track2', dur: 50000, rotate: true, loop: true});
+    }
+    
     console.log(meter.volume);
     // set up the next visual callback
     rafID = window.requestAnimationFrame( onLevelChange );
