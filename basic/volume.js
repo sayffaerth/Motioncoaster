@@ -96,10 +96,10 @@ function onMicrophoneGranted(stream) {
 function onLevelChange( time ) {
     if (meter.volume > 0.05){
         var speed = document.querySelector('#speed');
-        speed.setAttribute('alongpath', {curve: '#track2', dur: 5000, rotate: true, loop: true});
+        speed.setAttribute('alongpath', {curve: '#track2', dur: 5000, rotate: true, loop: true, resetonplay: false});
     } else {
         var speed = document.querySelector('#speed');
-        speed.setAttribute('alongpath', {curve: '#track2', dur: 50000, rotate: true, loop: true});
+        speed.setAttribute('alongpath', {curve: '#track2', dur: 50000, rotate: true, loop: true, resetonplay: false});
     }
     
     //console.log(meter.volume);
