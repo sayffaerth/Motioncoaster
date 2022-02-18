@@ -26,14 +26,22 @@
     </style>
   </head>
   <body>
-
+    <script>
+      function loadARtrack(){
+        if(sessionStorage["artrack"]){
+          document.location.href = "./vr/artrack.html";
+        } else {
+          alert("Please upload a motioncoaster.json track first with the button below.");
+        }
+      }
+    </script>
     <h1>MOTION(sickness.roller)COASTER</h1>
     <div>
       <a href="./vr/defaulttrack.html">VR Driver</a>
       <span>- default track</span><br/>
     </div>
     <div>
-      <a href="./vr/artrack.html"> VR Driver</a>
+      <a href="javascript:loadARtrack()"> VR Driver</a>
       <span>- AR drawn track</span><br/>
       <input id="file-upload-button" type="file" />
     </div>
@@ -42,7 +50,6 @@
       <span>- AR track drawer</span>
     </div>
     
-    <!--<script src="./vr/points.js"></script>-->
     <script>
       function importJSON(event) {
         var reader = new FileReader();
@@ -51,8 +58,8 @@
           //Debugging in order to check if provided files from export parse:
           //var jsonObj = JSON.parse(event.target.result);
           //console.log(jsonObj);
-          localStorage["artrack"] = event.target.result
-          console.log(localStorage["artrack"])
+          sessionStorage["artrack"] = event.target.result
+          console.log(sessionStorage["artrack"])
         }
 
         reader.readAsText(event.target.files[0]);

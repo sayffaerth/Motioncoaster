@@ -14,7 +14,7 @@
 ]*/
 
 // Transform JSON to pointslist
-var data = JSON.parse(localStorage["artrack"]);
+var data = JSON.parse(sessionStorage["artrack"]);
 console.log(data)
 var points = []
 for (d in data){
