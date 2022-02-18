@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  
+  <head>
+    <meta charset="utf-8" />
+    <title>AR Line Painting App with AFrame AR</title>
+    <meta name="description" content="An app to paint a continuous line in AR with AFrame AR" />
+    
+    <!-- Include A-Frame (any version should work) -->
+    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@e47f441/dist/aframe-master.min.js"></script>
+    <!-- Include aframe-ar. -->
+    <script src="https://ghcdn.rawgit.org/chenzlabs/aframe-ar/8a7ee3b/dist/aframe-ar.min.js"></script>
+    
+    <!-- Include aframe-lines, an optimized package for drawing continuous lines -->
+    <script src="https://unpkg.com/aframe-lines@^1.1.0/lines.js"></script>
+  </head>
+
+  <body>
+    <script>
+      // In this script block we define custom components and helper functions that will be integrated in the initial scene.
+      
+      //This component is for logging purposes. It console.logs() the position and rotation of its object. It is mainly used for the AR camera here.
+      AFRAME.registerComponent("logger", {
+        tick: function () {
+          // `this.el` is the element.
+          // `object3D` is the three.js object.
+          // `rotation` is a three.js Euler using radians. `quaternion` also available.
+          const rot = this.el.object3D.rotation;
+          const pos = this.el.object3D.position;
+          const rotx = (Math.round(rot.x * 100) / 100).toFixed(2)
+          const roty = (Math.round(rot.y * 100) / 100).toFixed(2)
+          const rotz = (Math.round(rot.z * 100) / 100).toFixed(2)
+          const posx = (Math.round(pos.x * 100) / 100).toFixed(2)
+          const posy = (Math.round(pos.y * 100) / 100).toFixed(2)
+          const posz = (Math.round(pos.z * 100) / 100).toFixed(2)
+                    
+          console.log("The AR camera is at position x: " + posx + ", y: " + posy + ", z: " + posz + ", and rotation  x: " + rotx + ", y: " + roty + ", z: " + rotz);
+        },
+      });
+      
+      //Places a sphere at the current position of the wandhead and connects it with the previous sphere via a line
+      function placePointAtWandhead(){
+        //Extract wandhead worldposition
+        const wandhead = document.getElementById("wandhead");
+        var worldPos = new THREE.Vector3();
+        worldPos.setFromMatrixPosition(wandhead.object3D.matrixWorld);
+        const posx = worldPos.x;
+        const posy = worldPos.y;
+        const posz = worldPos.z;
+        
+        console.log("Placing point at x: " + posx + ", y: " + posy + ", z: " + posz);
+        const point2place = posx + " " + posy + " " + posz; //Spaceseparated position format as required by the a-frame entities. 
+               
+        //Spawn a sphere at wandhead pos
+        var sphere = document.createElement('a-sphere');
+        sphere.setAttribute('position', point2place);
+        sphere.setAttribute('radius', 0.01);
+        sphere.setAttribute('color', "#00f");
+        document.querySelector('a-scene').appendChild(sphere);
+        
+        //Connect this sphere and the last one (if it exists) with a (continuous) line.
+        var lines = document.getElementById("lines");
+        //console.log(lines) // Debugging
+        linePoints = lines.getAttribute('points');
+        if(linePoints){
+          lines.setAttribute('points', linePoints + ", " + point2place); //Add this position to the continuous line.
+        } else {
+          lines.setAttribute('points', point2place); //Initialize the continuous line as it doesn't exist currently.
+        }        
+      }
+      
+      //Transforms an integer to its corresponding hex value.
+      function componentToHex(c) {
+        var hex = c.toString(16);
+        return hex.length == 1 ? "0" + hex : hex;
+      }
+      
+      //Transforms an RGB value to a its corresponding hex value.
+      function rgbToHex(r, g, b) {
+        return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+      }
+      
+      
+      const xThreshold = -1.4; //How far the phone needs to be tilted in order to start the placement. -0.5*pi is max tilt (screen perfectly up) but should ofc have some leeway.
+      const checkInterval = 50; //How often the tilt shall be checked in milliseconds
+      const timeThreshold = 2000; //How long the phone needs to be tilted until placement happens. Also the cooldown period afterwards.
+      var checking = false; //If we are currently in a placement checking process.
+      
+      // This functions continues to check if the phone is tilted until it reaches timeThreshold or tilting is stopped.
+      // It also changes the color of its indicator continuously from red to green depending on how far it is in the process.
+      function placementViaTimer(currentTime, rotation, colorIndicator){
+        
+        const rotx = (Math.round(rot.x * 100) / 100).toFixed(2)
+        // For Debugging:
+        //console.log("Checking rotation " + rotx + " against " + xThreshold + ". Time is " + currentTime + " of " + timeThreshold)
+        
+        if(rot.x < xThreshold){
+          
+          //Continous color change of the indicator depending on how close we are to placement.
+          const green = Math.round((currentTime / timeThreshold) * 255)
+          const red = 255 - green          
+          colorIndicator.setAttribute('color', rgbToHex(red, green, 96));
+          
+          //Check if enough time passed to place.
+          if(currentTime >= timeThreshold){
+            //console.log("Placement!"); //Debugging Placeholder
+            placePointAtWandhead();
+            colorIndicator.setAttribute('color', "#40e0d0"); //Set color indicator cyan to indicate successful placement and cooldown
+            document.getElementById("infotxt").setAttribute('visible', 'false') //Set "tutorial" info text invisible.
+            setTimeout(function(){ //After a cooldown (to prevent unwanted placements) activate checking for the next point.
+              checking = false;
+              colorIndicator.setAttribute('color', "#f06"); //Reset color indicator
+            }, timeThreshold);
+          } else { //Check again in checkInterval ms
+            setTimeout(placementViaTimer, checkInterval, (currentTime + checkInterval), rotation, colorIndicator);
+          }
+        } else { //Tilting was stopped before placement. Reset.
+          checking = false;
+          colorIndicator.setAttribute('color', "#f06");
+        }
+      }
+      
+      //Component that should be attached to AR camera in order to check for placement tilting.
+      AFRAME.registerComponent("pointplacer", {
+        tick: function () {
+          rot = this.el.object3D.rotation;
+          pos = this.el.object3D.position;
+          
+          if(rot.x < xThreshold){
+            if(!checking){
+              checking = true;
+              const wandhead = document.getElementById("wandhead");
+              placementViaTimer(0, rot, wandhead);
+            }
+          }
+        }
+      });
+            
+      
+      /* Unfortunately all DOM Events are disabled during WebXR usage. Therefore we can't use traditional ways of interaction.
+      //Solution: We use the above phone gestures instead --> no touch or button interaction required.
+      <!-- Touch / Click Interaction -->
+      function interact(e) {
+        if (e.type == 'touchstart') { console.log("touchstart"); }
+	    	if (e.type == 'touchend') { console.log("touchend"); }
+		    if (e.type == 'click') { console.log("click"); }
+      }
+      window.addEventListener('touchstart', interact);
+	    window.addEventListener('touchend', interact);
+	    window.addEventListener('click', interact);
+            
+      var keyDownHandler = function(evt) {
+        console.log(evt);
+      };
+
+      window.addEventListener('keydown', keyDownHandler);
+      */
+      
+    </script>
+
+    <a-scene id="a-scene" ar>
+      <!-- AFrame Default scene
+      <a-box width="0.25" height="0.25" depth="0.25" position="-0.25 0.125 -0.75" rotation="0 45 0" color="#4CC3D9" shadow></a-box>
+      <a-sphere position="0 0.3125 -1.25" radius="0.3125" color="#EF2D5E" shadow></a-sphere>
+      <a-cylinder position="0.25 0.1875 -0.75" radius="0.125" height="0.375" color="#FFC65D" shadow></a-cylinder>
+      <a-plane position="0 0 -1" rotation="-90 0 0" width="1" height="1" color="#7BC8A4" shadow></a-plane>
+      -->
+      
+      <!-- Placeholder line (to debug rendering)
+      <a-entity
+        lines="points: -0.25 0.125 -0.75, 0 0.3125 -1.25, 0.25 0.1875 -0.75; color:blue"
+      ></a-entity>
+      -->
+      
+      <!-- Custom camera with a magic placement wand attached to it. -->
+      <!-- When no camera is specified, AFrame will auto-generate one. This way however allows to already specify or remove all attributes for our specific use case -->
+      <a-entity camera="" position="" rotation="" look-controls="" pointplacer>
+        <!-- this is the wand in front of the camera -->
+        <a-sphere id="wandhead" position="0 0 -0.1" radius="0.007" color="#f06" shadow></a-sphere>
+        <a-cylinder id="wandstaff" position="0 -0.015 -0.085" rotation="-45 0 0" radius="0.0025" height="0.04" color="#FFC65D" shadow></a-cylinder>
+        <a-text id="infotxt" value="Tilt phone to\nplace a point\n(screen straight up)" position="0 -0.015 -0.065" color="#b44" align="center" width="0.1" height="0.1"></a-text>
+      </a-entity>
+      <a-lines id="lines" points="" color="#00f"></a-lines>
+    </a-scene>
+    <script>
+      
+    </script>
+  </body>
+</html>
