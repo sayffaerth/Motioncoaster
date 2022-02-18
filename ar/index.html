@@ -90,11 +90,11 @@
       // It also changes the color of its indicator continuously from red to green depending on how far it is in the process.
       function placementViaTimer(currentTime, rotation, colorIndicator){
         
-        const rotx = (Math.round(rot.x * 100) / 100).toFixed(2)
+        const rotx = (Math.round(rot.x * 100) / 100).toFixed(2);
         // For Debugging:
         //console.log("Checking rotation " + rotx + " against " + xThreshold + ". Time is " + currentTime + " of " + timeThreshold)
         
-        if(rot.x < xThreshold){
+        if(rotx < xThreshold){
           
           //Continous color change of the indicator depending on how close we are to placement.
           const green = Math.round((currentTime / timeThreshold) * 255)
@@ -120,17 +120,78 @@
         }
       }
       
-      //Component that should be attached to AR camera in order to check for placement tilting.
+      //Exports the current pointslist as JSON in order to be read into the VR motioncoaster with custom tracks
+      function exportJSON(){
+        console.log("Exporting...");
+        var exprt = document.getElementById("lines").getAttribute('points');
+        exprt = "data:text/json;charset=utf-8,[" + exprt + "]";
+        console.log(exprt);
+        
+        var dlAnchorElem = document.getElementById('downloadAnchorElem');
+        dlAnchorElem.setAttribute("href",     exprt     );
+        dlAnchorElem.setAttribute("download", "motionCoasterTrack.json");
+        dlAnchorElem.click();
+      }
+      
+      // This functions continues to check if the phone is tilted until it reaches timeThreshold or tilting is stopped.
+      // It also changes the color of its indicator continuously from red to green depending on how far it is in the process.
+      function exportViaTimer(currentTime, rotation, colorIndicator){
+        
+        const rotx = (Math.round(rot.x * 100) / 100).toFixed(2);
+        // For Debugging:
+        console.log("Checking rotation " + rotx + " against " + xThreshold + ". Time is " + currentTime + " of " + timeThreshold)
+        
+        if(rotx > -xThreshold){
+          
+          //Continous color change of the indicator depending on how close we are to placement.
+          const green = Math.round((currentTime / timeThreshold) * 255)
+          const red = 255 - green          
+          colorIndicator.setAttribute('color', rgbToHex(red, green, 96));
+          
+          //Check if enough time passed to place.
+          if(currentTime >= timeThreshold){
+            exportJSON();
+            colorIndicator.setAttribute('color', "#40e0d0"); //Set color indicator cyan to indicate successful export and cooldown
+            setTimeout(function(){ //After a cooldown (to prevent unwanted placements) activate checking for the next point.
+              checking = false;
+              colorIndicator.setAttribute('color', "#f06"); //Reset color indicator
+            }, timeThreshold);
+          } else { //Check again in checkInterval ms
+            setTimeout(exportViaTimer, checkInterval, (currentTime + checkInterval), rotation, colorIndicator);
+          }
+        } else { //Tilting was stopped before placement. Reset.
+          checking = false;
+          colorIndicator.setAttribute('color', "#f06");
+        }
+      }
+      
+      //Component that should be attached to AR camera in order to check for placement tilting. (screen all the way up)
       AFRAME.registerComponent("pointplacer", {
         tick: function () {
           rot = this.el.object3D.rotation;
-          pos = this.el.object3D.position;
+          //pos = this.el.object3D.position;
           
           if(rot.x < xThreshold){
             if(!checking){
               checking = true;
               const wandhead = document.getElementById("wandhead");
               placementViaTimer(0, rot, wandhead);
+            }
+          }
+        }
+      });
+            
+      //Component that should be attached to AR camera in order to check for export tilting. (screen all the way down / straight up at the sky "beam it up")
+      AFRAME.registerComponent("pointexporter", {
+        tick: function () {
+          rot = this.el.object3D.rotation;
+          //pos = this.el.object3D.position;
+          
+          if(rot.x > -xThreshold){ //Same check as pointPlacer but inverted
+            if(!checking){
+              checking = true; //We can use the same global variable since the phone can never be tilted up and down at the same time.
+              const wandhead = document.getElementById("wandhead");
+              exportViaTimer(0, rot, wandhead);
             }
           }
         }
@@ -156,6 +217,7 @@
       window.addEventListener('keydown', keyDownHandler);
       */
       
+      
     </script>
 
     <a-scene id="a-scene" ar>
@@ -174,7 +236,7 @@
       
       <!-- Custom camera with a magic placement wand attached to it. -->
       <!-- When no camera is specified, AFrame will auto-generate one. This way however allows to already specify or remove all attributes for our specific use case -->
-      <a-entity camera="" position="" rotation="" look-controls="" pointplacer>
+      <a-entity camera="" position="" rotation="" look-controls="" pointplacer pointexporter>
         <!-- this is the wand in front of the camera -->
         <a-sphere id="wandhead" position="0 0 -0.1" radius="0.007" color="#f06" shadow></a-sphere>
         <a-cylinder id="wandstaff" position="0 -0.015 -0.085" rotation="-45 0 0" radius="0.0025" height="0.04" color="#FFC65D" shadow></a-cylinder>
@@ -182,6 +244,8 @@
       </a-entity>
       <a-lines id="lines" points="" color="#00f"></a-lines>
     </a-scene>
+    <!-- For the JSON Exporter -->
+    <a id="downloadAnchorElem" style="display:none"></a>
     <script>
       
     </script>
