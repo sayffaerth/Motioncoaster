@@ -20,4 +20,4 @@ In the current version painting in 3d space is possible via an interactive smart
 
 Access the mobile Chrome devtools via chrome://inspect on pc while your phone has USB-debugging enabled and is connected. 
 
-Github hosted weblink:
+Github hosted weblink: https://sayffaerth.github.io/Motioncoaster/ar/
