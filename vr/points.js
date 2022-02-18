@@ -13,6 +13,7 @@
     [9, 3, 6]
 ]*/
 
+// Transform JSON to pointslist
 var data = JSON.parse(localStorage["artrack"]);
 console.log(data)
 var points = []
@@ -20,18 +21,20 @@ for (d in data){
     points.push(data[d].split(" ").map(num => Number(num)))
 }
 
+// Calculate the length of the track
 var dist = 0
 for (o=1; o<points.length; o++){
     dist += calculatedist(points[o-1], points[o])
 }
 
+// Make multiplikator für track so that track is always a specific length (speed is dependent from length)
 var multiplicator = 100 / dist
 
+// Add multiplikator to points
 var pointlist = []
 for (p in points){
     pointlist.push(points[p].map(num => num*multiplicator))
 }
-
 
 
 // Get the trees of the tracks and black sphere
@@ -63,6 +66,7 @@ endSphere.setAttribute('radius', 0.5)
 endSphere.setAttribute('color', "black")
 groupObject3D_s.appendChild(endSphere);
 
+// Calculate the distant function, source: https://dirask.com/posts/JavaScript-how-to-calculate-distance-between-two-points-in-3D-space-xpz9aD
 function calculatedist(point1, point2){
     return Math.sqrt((point2[0]-point1[0])*(point2[0]-point1[0]) + (point2[1]-point1[1])*(point2[1]-point1[1]) + (point2[2]-point1[2])*(point2[2]-point1[2]));
 }
