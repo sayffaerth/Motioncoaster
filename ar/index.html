@@ -123,10 +123,13 @@
       //Exports the current pointslist as JSON in order to be read into the VR motioncoaster with custom tracks
       function exportJSON(){
         console.log("Exporting...");
-        var exprt = document.getElementById("lines").getAttribute('points');
-        exprt = "data:text/json;charset=utf-8,[" + exprt + "]";
+        var splitPoints = document.getElementById("lines").getAttribute('points').split(", ");
+        //console.log(JSON.stringify(splitPoints));
+        
+        var exprt = "data:text/json;charset=utf-8," + JSON.stringify(splitPoints);
         console.log(exprt);
         
+        //Download the JSON file to device FS
         var dlAnchorElem = document.getElementById('downloadAnchorElem');
         dlAnchorElem.setAttribute("href",     exprt     );
         dlAnchorElem.setAttribute("download", "motionCoasterTrack.json");
@@ -139,7 +142,7 @@
         
         const rotx = (Math.round(rot.x * 100) / 100).toFixed(2);
         // For Debugging:
-        console.log("Checking rotation " + rotx + " against " + xThreshold + ". Time is " + currentTime + " of " + timeThreshold)
+        //console.log("Checking rotation " + rotx + " against " + xThreshold + ". Time is " + currentTime + " of " + timeThreshold)
         
         if(rotx > -xThreshold){
           
