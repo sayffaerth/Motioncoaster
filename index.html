@@ -25,6 +25,19 @@
     </style>
   </head>
   <body>
+    <script>
+      $(document).on('change', '.file-upload-button', function(event) {
+        var reader = new FileReader();
+
+        reader.onload = function(event) {
+          var jsonObj = JSON.parse(event.target.result);
+          alert(jsonObj.name);
+        }
+
+        reader.readAsText(event.target.files[0]);
+      });
+    </script>
+
     <h1>MOTION(sickness.roller)COASTER</h1>
     <div>
       <a href="./vr/defaulttrack.html">VR Driver</a>
@@ -33,6 +46,7 @@
     <div>
       <a href="./vr/artrack.html"> VR Driver</a>
       <span>- AR drawn track</span></br>
+      <input class='file-upload-button' type="file" />
     </div>
     <div>
       <a href="./ar/index.html">AR Drawer</a>
